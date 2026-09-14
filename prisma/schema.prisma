@@ -1,0 +1,160 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+}
+
+// ---------- Auth (NextAuth Credentials + Prisma Adapter) ----------
+// Model names/fields below (aside from passwordHash/role) are fixed by the
+// adapter's Prisma calls and cannot be renamed.
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String
+  role          String    @default("ADMIN")
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- Content ----------
+
+model PageContent {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String?
+  content     Json
+  status      Status    @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model HouseType {
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  description  String?   @db.Text
+  images       String[]
+  priceFrom    Decimal   @db.Decimal(12, 2)
+  bedrooms     Int
+  bathrooms    Int
+  floorAreaSqm Decimal   @db.Decimal(8, 2)
+  status       Status    @default(DRAFT)
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model NewsPost {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  body        String     @db.Text
+  excerpt     String?
+  status      Status     @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  campaigns   Campaign[]
+}
+
+// ---------- Email campaign (schema only for now) ----------
+
+model Subscriber {
+  id                 String              @id @default(cuid())
+  name               String
+  email              String              @unique
+  consent            Boolean             @default(true)
+  unsubscribeToken   String              @unique @default(cuid())
+  subscribedAt       DateTime            @default(now())
+  unsubscribedAt     DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  campaignRecipients CampaignRecipient[]
+}
+
+enum CampaignStatus {
+  DRAFT
+  SENDING
+  SENT
+  FAILED
+}
+
+model Campaign {
+  id             String              @id @default(cuid())
+  subject        String
+  body           String              @db.Text
+  newsPostId     String?
+  newsPost       NewsPost?           @relation(fields: [newsPostId], references: [id])
+  status         CampaignStatus      @default(DRAFT)
+  sentAt         DateTime?
+  recipientCount Int                 @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  recipients     CampaignRecipient[]
+}
+
+enum RecipientStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model CampaignRecipient {
+  id           String          @id @default(cuid())
+  campaignId   String
+  campaign     Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  subscriberId String
+  subscriber   Subscriber      @relation(fields: [subscriberId], references: [id])
+  status       RecipientStatus @default(PENDING)
+  sentAt       DateTime?
+  error        String?
+  createdAt    DateTime        @default(now())
+
+  @@unique([campaignId, subscriberId])
+}
