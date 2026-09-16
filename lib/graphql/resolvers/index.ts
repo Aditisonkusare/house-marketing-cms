@@ -4,6 +4,7 @@ import { pageContentResolvers } from "@/lib/graphql/resolvers/pageContent";
 import { houseTypeResolvers } from "@/lib/graphql/resolvers/houseType";
 import { newsPostResolvers } from "@/lib/graphql/resolvers/newsPost";
 import { subscriberResolvers } from "@/lib/graphql/resolvers/subscriber";
+import { campaignResolvers } from "@/lib/graphql/resolvers/campaign";
 
 export const resolvers = {
   DateTime: DateTimeResolver,
@@ -17,11 +18,14 @@ export const resolvers = {
     ...pageContentResolvers.Query,
     ...houseTypeResolvers.Query,
     ...newsPostResolvers.Query,
+    ...subscriberResolvers.Query,
+    ...campaignResolvers.Query,
   },
   Mutation: {
     ...pageContentResolvers.Mutation,
     ...houseTypeResolvers.Mutation,
     ...newsPostResolvers.Mutation,
     ...subscriberResolvers.Mutation,
+    ...campaignResolvers.Mutation,
   },
 };

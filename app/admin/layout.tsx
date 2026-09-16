@@ -33,6 +33,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               News
             </Link>
           </li>
+          <li>
+            <Link href="/admin/campaigns" className="block rounded px-2 py-1.5 hover:bg-gray-200">
+              Campaigns
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/subscribers" className="block rounded px-2 py-1.5 hover:bg-gray-200">
+              Subscribers
+            </Link>
+          </li>
         </ul>
         <div className="mt-6 border-t border-gray-200 pt-4">
           <p className="mb-2 truncate text-xs text-gray-500">{session.user.email}</p>

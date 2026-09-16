@@ -8,7 +8,7 @@ so editing content in the admin updates the live site with no code deploy.
 **Status:**
 - ✅ Part 1 — Public marketing site (homepage, house types, news, register form)
 - ✅ Part 2 — Custom CMS (admin login, CRUD, draft/published enforcement)
-- ⏳ Part 3 — Email campaign tool (data model in place, sending not yet built)
+- ✅ Part 3 — Email campaign tool (compose/preview/send, delivery log, unsubscribe)
 
 ## Tech stack
 
@@ -16,6 +16,7 @@ so editing content in the admin updates the live site with no code deploy.
 - **API:** GraphQL via Apollo Server, mounted at `/api/graphql`
 - **Database:** PostgreSQL + Prisma ORM
 - **Auth:** NextAuth (Credentials provider, one seeded admin user)
+- **Email:** Nodemailer over SMTP (Mailpit locally; works against a real provider like Resend/Brevo by env config alone)
 - **Styling:** Tailwind CSS 4
 - **Local infrastructure:** Docker Compose (Postgres + Mailpit SMTP sandbox)
 
@@ -53,8 +54,9 @@ Then edit `.env`:
 docker compose up -d
 ```
 
-> If port `5432` is already in use on your machine, change the host port in
-> `docker-compose.yml` (e.g. `"5433:5432"`) and update `DATABASE_URL` in `.env` to match.
+> Postgres is mapped to host port `5433` (not the default `5432`) to avoid clashing with
+> any other Postgres already running on your machine. If `5433` is also taken, change the
+> host port in `docker-compose.yml` and update `DATABASE_URL` in `.env` to match.
 
 **4. Set up the database**
 
@@ -80,16 +82,29 @@ npm run dev
 
 Log into the admin with the `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` you set in `.env`.
 
+## Sending a campaign
+
+From the admin, register a few subscribers via the public `/register` form (your own
+test addresses are fine), then go to **Campaigns → New Campaign**, write a subject and
+body, optionally link a published news post, and save the draft. Open the campaign to
+preview exactly what will be sent, then hit **Send Campaign** — it emails every
+consented subscriber via SMTP, and the same page then shows a per-recipient log
+(sent/failed). Every email includes an unsubscribe link; clicking it revokes consent so
+that subscriber is excluded from future sends. Check delivered emails at Mailpit
+(`http://localhost:8025`) locally, or your real provider's inbox in production.
+
 ## Project structure
 
 ```
-app/(site)/       Public marketing site — homepage, house types, news, register
-app/admin/         CMS admin — login, CRUD for page content / house types / news
-app/api/graphql/   Apollo Server GraphQL API
-lib/graphql/       GraphQL schema and resolvers
-lib/validation/     Shared validation schemas
-prisma/schema.prisma  Database schema
-docker-compose.yml  Local Postgres + Mailpit
+app/(site)/          Public marketing site — homepage, house types, news, register, unsubscribe
+app/admin/            CMS admin — login, CRUD for page content / house types / news, campaigns, subscribers
+app/api/graphql/      Apollo Server GraphQL API
+lib/graphql/          GraphQL schema and resolvers
+lib/validation/        Shared validation schemas
+lib/campaigns/         Email template and campaign-send logic
+lib/mailer.ts          Nodemailer/SMTP wrapper
+prisma/schema.prisma   Database schema
+docker-compose.yml     Local Postgres + Mailpit
 ```
 
 ## Useful commands

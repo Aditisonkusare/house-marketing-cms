@@ -7,6 +7,19 @@ export const typeDefs = `#graphql
     PUBLISHED
   }
 
+  enum CampaignStatus {
+    DRAFT
+    SENDING
+    SENT
+    FAILED
+  }
+
+  enum RecipientStatus {
+    PENDING
+    SENT
+    FAILED
+  }
+
   type AdminUser {
     id: ID!
     email: String!
@@ -60,6 +73,27 @@ export const typeDefs = `#graphql
     subscribedAt: DateTime!
   }
 
+  type Campaign {
+    id: ID!
+    subject: String!
+    body: String!
+    newsPost: NewsPost
+    status: CampaignStatus!
+    sentAt: DateTime
+    recipientCount: Int!
+    recipients: [CampaignRecipient!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  type CampaignRecipient {
+    id: ID!
+    subscriber: Subscriber!
+    status: RecipientStatus!
+    sentAt: DateTime
+    error: String
+  }
+
   input PageContentInput {
     slug: String!
     title: String
@@ -93,6 +127,12 @@ export const typeDefs = `#graphql
     consent: Boolean!
   }
 
+  input CampaignInput {
+    subject: String!
+    body: String!
+    newsPostId: ID
+  }
+
   type Query {
     me: AdminUser
 
@@ -104,6 +144,11 @@ export const typeDefs = `#graphql
 
     newsPosts: [NewsPost!]!
     newsPost(slug: String!): NewsPost
+
+    campaigns: [Campaign!]!
+    campaign(id: ID!): Campaign
+    consentedSubscriberCount: Int!
+    subscribers: [Subscriber!]!
   }
 
   type Mutation {
@@ -120,5 +165,9 @@ export const typeDefs = `#graphql
     deleteNewsPost(id: ID!): Boolean!
 
     registerSubscriber(input: RegisterSubscriberInput!): Subscriber!
+    unsubscribe(token: String!): Boolean!
+
+    createCampaign(input: CampaignInput!): Campaign!
+    sendCampaign(id: ID!): Campaign!
   }
 `;
