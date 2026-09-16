@@ -1,7 +1,7 @@
 "use server";
 
 import { ClientError } from "graphql-request";
-import { getGraphQLClient } from "@/lib/graphql-client";
+import { getPublicGraphQLClient } from "@/lib/graphql-client";
 import { registerSubscriberSchema } from "@/lib/validation/subscriber";
 
 export type RegisterState = {
@@ -24,7 +24,7 @@ export async function registerSubscriberAction(
     return { errors: parsed.error.flatten().fieldErrors };
   }
 
-  const client = await getGraphQLClient();
+  const client = await getPublicGraphQLClient();
 
   try {
     await client.request(

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getGraphQLClient } from "@/lib/graphql-client";
+import { getPublicGraphQLClient } from "@/lib/graphql-client";
 import { listPublishedHouseTypes } from "@/app/(site)/houses/queries";
 import { listPublishedNewsPosts } from "@/app/(site)/news/queries";
 import { HouseCard } from "@/components/house-card";
@@ -17,7 +17,7 @@ type HomeContent = {
 };
 
 async function getHomeContent(): Promise<HomeContent> {
-  const client = await getGraphQLClient();
+  const client = await getPublicGraphQLClient();
   const data = await client.request<{ pageContent: { content: unknown } | null }>(
     `query { pageContent(slug: "home") { content } }`
   );

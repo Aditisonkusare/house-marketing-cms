@@ -1,4 +1,4 @@
-import { getGraphQLClient } from "@/lib/graphql-client";
+import { getPublicGraphQLClient } from "@/lib/graphql-client";
 
 const HOUSE_TYPE_FIELDS = `
   id
@@ -25,7 +25,7 @@ export type HouseType = {
 };
 
 export async function listPublishedHouseTypes() {
-  const client = await getGraphQLClient();
+  const client = await getPublicGraphQLClient();
   const data = await client.request<{ houseTypes: HouseType[] }>(`
     query { houseTypes { ${HOUSE_TYPE_FIELDS} } }
   `);
@@ -33,7 +33,7 @@ export async function listPublishedHouseTypes() {
 }
 
 export async function getHouseTypeBySlug(slug: string) {
-  const client = await getGraphQLClient();
+  const client = await getPublicGraphQLClient();
   const data = await client.request<{ houseType: HouseType | null }>(
     `query HouseType($slug: String!) { houseType(slug: $slug) { ${HOUSE_TYPE_FIELDS} } }`,
     { slug }

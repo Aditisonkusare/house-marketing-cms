@@ -1,4 +1,4 @@
-import { getGraphQLClient } from "@/lib/graphql-client";
+import { getPublicGraphQLClient } from "@/lib/graphql-client";
 
 const NEWS_POST_FIELDS = `
   id
@@ -25,7 +25,7 @@ function byPublishedAtDesc(a: NewsPost, b: NewsPost) {
 }
 
 export async function listPublishedNewsPosts() {
-  const client = await getGraphQLClient();
+  const client = await getPublicGraphQLClient();
   const data = await client.request<{ newsPosts: NewsPost[] }>(`
     query { newsPosts { ${NEWS_POST_FIELDS} } }
   `);
@@ -33,7 +33,7 @@ export async function listPublishedNewsPosts() {
 }
 
 export async function getNewsPostBySlug(slug: string) {
-  const client = await getGraphQLClient();
+  const client = await getPublicGraphQLClient();
   const data = await client.request<{ newsPost: NewsPost | null }>(
     `query NewsPost($slug: String!) { newsPost(slug: $slug) { ${NEWS_POST_FIELDS} } }`,
     { slug }
