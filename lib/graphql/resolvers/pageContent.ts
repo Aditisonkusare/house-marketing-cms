@@ -1,5 +1,16 @@
+import { GraphQLError } from "graphql";
+import { Prisma } from "@prisma/client";
 import type { GraphQLContext } from "@/lib/graphql/context";
 import { requireAdmin, visibilityWhere } from "@/lib/graphql/resolvers/helpers";
+
+function handleSlugConflict(error: unknown): never {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    throw new GraphQLError("A page content entry with this slug already exists", {
+      extensions: { code: "DUPLICATE_SLUG" },
+    });
+  }
+  throw error;
+}
 
 export const pageContentResolvers = {
   Query: {
@@ -14,22 +25,26 @@ export const pageContentResolvers = {
       }),
   },
   Mutation: {
-    createPageContent: (
+    createPageContent: async (
       _: unknown,
       args: { input: { slug: string; title?: string; content: unknown; status?: "DRAFT" | "PUBLISHED" } },
       ctx: GraphQLContext
     ) => {
       requireAdmin(ctx);
       const { slug, title, content, status } = args.input;
-      return ctx.prisma.pageContent.create({
-        data: {
-          slug,
-          title,
-          content: content as object,
-          status,
-          publishedAt: status === "PUBLISHED" ? new Date() : undefined,
-        },
-      });
+      try {
+        return await ctx.prisma.pageContent.create({
+          data: {
+            slug,
+            title,
+            content: content as object,
+            status,
+            publishedAt: status === "PUBLISHED" ? new Date() : undefined,
+          },
+        });
+      } catch (error) {
+        handleSlugConflict(error);
+      }
     },
     updatePageContent: async (
       _: unknown,
@@ -40,16 +55,20 @@ export const pageContentResolvers = {
       const { slug, title, content, status } = args.input;
       const existing = await ctx.prisma.pageContent.findUnique({ where: { id: args.id } });
       const isNewlyPublished = status === "PUBLISHED" && existing?.status !== "PUBLISHED";
-      return ctx.prisma.pageContent.update({
-        where: { id: args.id },
-        data: {
-          slug,
-          title,
-          content: content as object,
-          status,
-          publishedAt: isNewlyPublished ? new Date() : undefined,
-        },
-      });
+      try {
+        return await ctx.prisma.pageContent.update({
+          where: { id: args.id },
+          data: {
+            slug,
+            title,
+            content: content as object,
+            status,
+            publishedAt: isNewlyPublished ? new Date() : undefined,
+          },
+        });
+      } catch (error) {
+        handleSlugConflict(error);
+      }
     },
     deletePageContent: async (_: unknown, args: { id: string }, ctx: GraphQLContext) => {
       requireAdmin(ctx);

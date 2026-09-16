@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { ClientError } from "graphql-request";
 import { getGraphQLClient } from "@/lib/graphql-client";
 
 const PAGE_CONTENT_FIELDS = `
@@ -19,6 +20,21 @@ export type PageContent = {
   content: unknown;
   status: "DRAFT" | "PUBLISHED";
 };
+
+export type PageContentFormState = { error?: string };
+
+function friendlyError(error: unknown): string {
+  if (error instanceof SyntaxError) {
+    return "Content must be valid JSON.";
+  }
+  if (error instanceof ClientError) {
+    const code = (error.response.errors?.[0]?.extensions as { code?: string } | undefined)?.code;
+    if (code === "DUPLICATE_SLUG") {
+      return "A page content entry with this slug already exists — choose a different slug.";
+    }
+  }
+  return "Something went wrong. Please try again.";
+}
 
 export async function listPageContents() {
   const client = await getGraphQLClient();
@@ -49,22 +65,53 @@ function inputFromFormData(formData: FormData) {
   };
 }
 
-export async function createPageContentAction(formData: FormData) {
+export async function createPageContentAction(
+  _prevState: PageContentFormState,
+  formData: FormData
+): Promise<PageContentFormState> {
+  let input;
+  try {
+    input = inputFromFormData(formData);
+  } catch (error) {
+    return { error: friendlyError(error) };
+  }
+
   const client = await getGraphQLClient();
-  await client.request(
-    `mutation Create($input: PageContentInput!) { createPageContent(input: $input) { id } }`,
-    { input: inputFromFormData(formData) }
-  );
+  try {
+    await client.request(
+      `mutation Create($input: PageContentInput!) { createPageContent(input: $input) { id } }`,
+      { input }
+    );
+  } catch (error) {
+    return { error: friendlyError(error) };
+  }
+
   revalidatePath("/admin/page-content");
   redirect("/admin/page-content");
 }
 
-export async function updatePageContentAction(id: string, formData: FormData) {
+export async function updatePageContentAction(
+  id: string,
+  _prevState: PageContentFormState,
+  formData: FormData
+): Promise<PageContentFormState> {
+  let input;
+  try {
+    input = inputFromFormData(formData);
+  } catch (error) {
+    return { error: friendlyError(error) };
+  }
+
   const client = await getGraphQLClient();
-  await client.request(
-    `mutation Update($id: ID!, $input: PageContentInput!) { updatePageContent(id: $id, input: $input) { id } }`,
-    { id, input: inputFromFormData(formData) }
-  );
+  try {
+    await client.request(
+      `mutation Update($id: ID!, $input: PageContentInput!) { updatePageContent(id: $id, input: $input) { id } }`,
+      { id, input }
+    );
+  } catch (error) {
+    return { error: friendlyError(error) };
+  }
+
   revalidatePath("/admin/page-content");
   redirect("/admin/page-content");
 }

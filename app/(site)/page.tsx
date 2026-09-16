@@ -28,9 +28,43 @@ async function getHomeContent(): Promise<HomeContent> {
   return {};
 }
 
+type ExtraPageContent = {
+  slug: string;
+  title: string | null;
+  heading: string;
+  body?: string;
+};
+
+// Any published Page Content besides "home" (used above for the hero/intro)
+// renders as its own section on the homepage, so publishing/unpublishing a
+// page content entry always has a visible effect on the live site — not
+// just a change the API reports with nowhere to show it.
+async function getExtraPageContents(): Promise<ExtraPageContent[]> {
+  const client = await getPublicGraphQLClient();
+  const data = await client.request<{
+    pageContents: { slug: string; title: string | null; content: unknown }[];
+  }>(`query { pageContents { slug title content } }`);
+
+  return data.pageContents
+    .filter((item) => item.slug !== "home")
+    .map((item) => {
+      const content =
+        item.content && typeof item.content === "object" && !Array.isArray(item.content)
+          ? (item.content as Record<string, unknown>)
+          : {};
+      const heading =
+        typeof content.introHeading === "string"
+          ? content.introHeading
+          : item.title ?? item.slug;
+      const body = typeof content.introBody === "string" ? content.introBody : undefined;
+      return { slug: item.slug, title: item.title, heading, body };
+    });
+}
+
 export default async function HomePage() {
-  const [homeContent, houseTypes, newsPosts] = await Promise.all([
+  const [homeContent, extraPageContents, houseTypes, newsPosts] = await Promise.all([
     getHomeContent(),
+    getExtraPageContents(),
     listPublishedHouseTypes(),
     listPublishedNewsPosts(),
   ]);
@@ -80,6 +114,15 @@ export default async function HomePage() {
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{introHeading}</h2>
         <p className="mt-4 whitespace-pre-wrap text-gray-600 dark:text-gray-400">{introBody}</p>
       </section>
+
+      {extraPageContents.map((item) => (
+        <section key={item.slug} className="mx-auto max-w-4xl px-4 pb-16 sm:px-6">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{item.heading}</h2>
+          {item.body && (
+            <p className="mt-4 whitespace-pre-wrap text-gray-600 dark:text-gray-400">{item.body}</p>
+          )}
+        </section>
+      ))}
 
       {galleryImages.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">

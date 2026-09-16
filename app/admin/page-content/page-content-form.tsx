@@ -1,16 +1,26 @@
 "use client";
 
-import type { PageContent } from "@/app/admin/page-content/actions";
+import { useActionState } from "react";
+import type { PageContent, PageContentFormState } from "@/app/admin/page-content/actions";
+
+const initialState: PageContentFormState = {};
 
 export function PageContentForm({
   action,
   defaultValues,
 }: {
-  action: (formData: FormData) => void;
+  action: (prevState: PageContentFormState, formData: FormData) => Promise<PageContentFormState>;
   defaultValues?: PageContent;
 }) {
+  const [state, formAction, isPending] = useActionState(action, initialState);
+
   return (
-    <form action={action} className="max-w-lg space-y-4">
+    <form action={formAction} className="max-w-lg space-y-4">
+      {state.error && (
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+          {state.error}
+        </p>
+      )}
       <Field label="Slug">
         <input name="slug" required defaultValue={defaultValues?.slug} className="input" />
       </Field>
@@ -37,9 +47,10 @@ export function PageContentForm({
 
       <button
         type="submit"
-        className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white dark:bg-gray-100 dark:text-gray-900"
+        disabled={isPending}
+        className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-gray-100 dark:text-gray-900"
       >
-        Save
+        {isPending ? "Saving..." : "Save"}
       </button>
 
       <style jsx>{`
