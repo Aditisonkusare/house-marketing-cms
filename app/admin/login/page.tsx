@@ -39,6 +39,10 @@ function LoginForm() {
     }
 
     router.push(searchParams.get("callbackUrl") ?? "/admin");
+    // The admin layout is a Server Component that reads the session; without
+    // this, Next's client-side router cache reuses the unauthenticated
+    // render from the login page (no sidebar) until a manual refresh.
+    router.refresh();
   }
 
   return (
