@@ -3,6 +3,7 @@ import type { GraphQLContext } from "@/lib/graphql/context";
 import { pageContentResolvers } from "@/lib/graphql/resolvers/pageContent";
 import { houseTypeResolvers } from "@/lib/graphql/resolvers/houseType";
 import { newsPostResolvers } from "@/lib/graphql/resolvers/newsPost";
+import { subscriberResolvers } from "@/lib/graphql/resolvers/subscriber";
 
 export const resolvers = {
   DateTime: DateTimeResolver,
@@ -21,5 +22,6 @@ export const resolvers = {
     ...pageContentResolvers.Mutation,
     ...houseTypeResolvers.Mutation,
     ...newsPostResolvers.Mutation,
+    ...subscriberResolvers.Mutation,
   },
 };

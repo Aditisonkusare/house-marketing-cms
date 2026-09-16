@@ -52,6 +52,14 @@ export const typeDefs = `#graphql
     updatedAt: DateTime!
   }
 
+  type Subscriber {
+    id: ID!
+    name: String!
+    email: String!
+    consent: Boolean!
+    subscribedAt: DateTime!
+  }
+
   input PageContentInput {
     slug: String!
     title: String
@@ -79,6 +87,12 @@ export const typeDefs = `#graphql
     status: Status
   }
 
+  input RegisterSubscriberInput {
+    name: String!
+    email: String!
+    consent: Boolean!
+  }
+
   type Query {
     me: AdminUser
 
@@ -104,5 +118,7 @@ export const typeDefs = `#graphql
     createNewsPost(input: NewsPostInput!): NewsPost!
     updateNewsPost(id: ID!, input: NewsPostInput!): NewsPost!
     deleteNewsPost(id: ID!): Boolean!
+
+    registerSubscriber(input: RegisterSubscriberInput!): Subscriber!
   }
 `;
