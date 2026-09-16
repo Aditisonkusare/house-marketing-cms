@@ -9,6 +9,10 @@ import { typeDefs } from "@/lib/graphql/schema";
 import { resolvers } from "@/lib/graphql/resolvers";
 import type { GraphQLContext } from "@/lib/graphql/context";
 
+// Sending a campaign can make several outbound SMTP calls in one request;
+// raise the default 10s Vercel function timeout so it has room to finish.
+export const maxDuration = 60;
+
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,

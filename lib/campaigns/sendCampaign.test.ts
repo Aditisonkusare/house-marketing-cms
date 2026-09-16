@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { PrismaClient, Campaign, NewsPost, Subscriber } from "@prisma/client";
 import { sendCampaignEmails } from "@/lib/campaigns/sendCampaign";
 
@@ -42,6 +42,25 @@ function makePrisma() {
 }
 
 describe("sendCampaignEmails", () => {
+  beforeEach(() => {
+    vi.stubEnv("NEXTAUTH_URL", "https://example.com");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("throws instead of silently defaulting to localhost when NEXTAUTH_URL is unset", async () => {
+    vi.stubEnv("NEXTAUTH_URL", "");
+    const { prisma } = makePrisma();
+    const sendMail = vi.fn().mockResolvedValue(undefined);
+
+    await expect(
+      sendCampaignEmails({ campaign: makeCampaign(), subscribers: [makeSubscriber()], prisma, sendMail })
+    ).rejects.toThrow("NEXTAUTH_URL must be set");
+    expect(sendMail).not.toHaveBeenCalled();
+  });
+
   it("marks every recipient SENT when delivery succeeds", async () => {
     const { prisma, update } = makePrisma();
     const sendMail = vi.fn().mockResolvedValue(undefined);

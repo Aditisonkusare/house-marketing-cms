@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { ClientError } from "graphql-request";
 import { getGraphQLClient } from "@/lib/graphql-client";
 
 const CAMPAIGN_FIELDS = `
@@ -105,7 +106,20 @@ export async function createCampaignAction(formData: FormData) {
 
 export async function sendCampaignAction(id: string) {
   const client = await getGraphQLClient();
-  await client.request(`mutation Send($id: ID!) { sendCampaign(id: $id) { id } }`, { id });
+  try {
+    await client.request(`mutation Send($id: ID!) { sendCampaign(id: $id) { id } }`, { id });
+  } catch (error) {
+    const code =
+      error instanceof ClientError
+        ? (error.response.errors?.[0]?.extensions as { code?: string } | undefined)?.code
+        : undefined;
+    // A double-click or slow-request retry can race a send that already
+    // completed. The campaign's real status is already persisted, so just
+    // show it (via the revalidate below) instead of crashing the page.
+    if (code !== "ALREADY_SENT") {
+      throw error;
+    }
+  }
   revalidatePath("/admin/campaigns");
   revalidatePath(`/admin/campaigns/${id}`);
 }
