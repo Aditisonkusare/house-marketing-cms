@@ -1,0 +1,35 @@
+name: CI
+
+"on":
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/house_marketing_cms
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+      SMTP_FROM: updates@house-marketing-cms.local
+      SEED_ADMIN_EMAIL: admin@example.com
+      SEED_ADMIN_PASSWORD: ci-placeholder-password
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run build
+
+      - name: Run tests
+        run: npm test --if-present
