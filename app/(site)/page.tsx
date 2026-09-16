@@ -77,21 +77,24 @@ export default async function HomePage() {
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
-        <h2 className="text-2xl font-semibold text-gray-900">{introHeading}</h2>
-        <p className="mt-4 whitespace-pre-wrap text-gray-600">{introBody}</p>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{introHeading}</h2>
+        <p className="mt-4 whitespace-pre-wrap text-gray-600 dark:text-gray-400">{introBody}</p>
       </section>
 
       {galleryImages.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-          <h2 className="mb-6 text-2xl font-semibold text-gray-900">Gallery</h2>
+          <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">Gallery</h2>
           <ImageGallery images={galleryImages} alt="Development gallery" />
         </section>
       )}
 
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-gray-900">Featured house types</h2>
-          <Link href="/houses" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Featured house types</h2>
+          <Link
+            href="/houses"
+            className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
             View all
           </Link>
         </div>
@@ -102,14 +105,17 @@ export default async function HomePage() {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500">House types are coming soon — check back shortly.</p>
+          <p className="text-gray-500 dark:text-gray-400">House types are coming soon — check back shortly.</p>
         )}
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-gray-900">Latest updates</h2>
-          <Link href="/news" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Latest updates</h2>
+          <Link
+            href="/news"
+            className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
             View all
           </Link>
         </div>
@@ -120,7 +126,7 @@ export default async function HomePage() {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500">No news yet — check back shortly.</p>
+          <p className="text-gray-500 dark:text-gray-400">No news yet — check back shortly.</p>
         )}
       </section>
 

@@ -10,7 +10,7 @@ export function RegisterForm() {
 
   if (state.success) {
     return (
-      <div className="rounded-lg border border-green-200 bg-green-50 p-6 text-green-800">
+      <div className="rounded-lg border border-green-200 bg-green-50 p-6 text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">
         <p className="font-medium">Thanks for registering!</p>
         <p className="mt-1 text-sm">We&apos;ll keep you posted on new house types and updates.</p>
       </div>
@@ -26,19 +26,21 @@ export function RegisterForm() {
         <input name="email" type="email" required className="input" />
       </Field>
       <div>
-        <label className="flex items-start gap-2 text-sm text-gray-700">
+        <label className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
           <input name="consent" type="checkbox" className="mt-0.5" />
           <span>I consent to being contacted with updates about this development.</span>
         </label>
-        {state.errors?.consent && <p className="mt-1 text-sm text-red-600">{state.errors.consent[0]}</p>}
+        {state.errors?.consent && (
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{state.errors.consent[0]}</p>
+        )}
       </div>
 
-      {state.errors?.form && <p className="text-sm text-red-600">{state.errors.form[0]}</p>}
+      {state.errors?.form && <p className="text-sm text-red-600 dark:text-red-400">{state.errors.form[0]}</p>}
 
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-md bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
+        className="rounded-md bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
       >
         {isPending ? "Submitting..." : "Register"}
       </button>
@@ -51,6 +53,13 @@ export function RegisterForm() {
           border-radius: 0.375rem;
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
+        }
+        @media (prefers-color-scheme: dark) {
+          .input {
+            background: #111827;
+            border-color: #374151;
+            color: #f3f4f6;
+          }
         }
       `}</style>
     </form>
@@ -68,9 +77,9 @@ function Field({
 }) {
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
       {children}
-      {error && <p className="text-sm text-red-600">{error[0]}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error[0]}</p>}
     </div>
   );
 }

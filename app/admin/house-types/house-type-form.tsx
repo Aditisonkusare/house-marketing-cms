@@ -69,7 +69,10 @@ export function HouseTypeForm({
         </select>
       </Field>
 
-      <button type="submit" className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white">
+      <button
+        type="submit"
+        className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white dark:bg-gray-100 dark:text-gray-900"
+      >
         Save
       </button>
 
@@ -82,6 +85,13 @@ export function HouseTypeForm({
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
         }
+        @media (prefers-color-scheme: dark) {
+          .input {
+            background: #111827;
+            border-color: #374151;
+            color: #f3f4f6;
+          }
+        }
       `}</style>
     </form>
   );
@@ -90,7 +100,7 @@ export function HouseTypeForm({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
       {children}
     </div>
   );

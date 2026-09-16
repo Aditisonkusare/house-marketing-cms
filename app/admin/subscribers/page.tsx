@@ -22,11 +22,11 @@ export default async function SubscribersPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">Subscribers</h1>
+      <h1 className="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">Subscribers</h1>
 
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-gray-200 text-gray-500">
+          <tr className="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
             <th className="py-2">Name</th>
             <th className="py-2">Email</th>
             <th className="py-2">Consent</th>
@@ -35,15 +35,15 @@ export default async function SubscribersPage() {
         </thead>
         <tbody>
           {subscribers.map((subscriber) => (
-            <tr key={subscriber.id} className="border-b border-gray-100">
+            <tr key={subscriber.id} className="border-b border-gray-100 dark:border-gray-800">
               <td className="py-2">{subscriber.name}</td>
               <td className="py-2">{subscriber.email}</td>
               <td className="py-2">
                 <span
                   className={
                     subscriber.consent
-                      ? "rounded bg-green-100 px-2 py-0.5 text-xs text-green-800"
-                      : "rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
+                      ? "rounded bg-green-100 px-2 py-0.5 text-xs text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                      : "rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                   }
                 >
                   {subscriber.consent ? "Yes" : "No"}
@@ -54,7 +54,7 @@ export default async function SubscribersPage() {
           ))}
           {subscribers.length === 0 && (
             <tr>
-              <td colSpan={4} className="py-6 text-center text-gray-400">
+              <td colSpan={4} className="py-6 text-center text-gray-400 dark:text-gray-500">
                 No subscribers yet.
               </td>
             </tr>

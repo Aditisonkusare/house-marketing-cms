@@ -10,8 +10,10 @@ export default async function HouseTypesPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold text-gray-900">House Types</h1>
-      <p className="mt-2 text-gray-600">Browse the house types available at this development.</p>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">House Types</h1>
+      <p className="mt-2 text-gray-600 dark:text-gray-400">
+        Browse the house types available at this development.
+      </p>
 
       {houseTypes.length > 0 ? (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -20,7 +22,9 @@ export default async function HouseTypesPage() {
           ))}
         </div>
       ) : (
-        <p className="mt-8 text-gray-500">No house types published yet — check back shortly.</p>
+        <p className="mt-8 text-gray-500 dark:text-gray-400">
+          No house types published yet — check back shortly.
+        </p>
       )}
     </div>
   );

@@ -9,7 +9,7 @@ export default async function EditNewsPostPage({ params }: { params: Promise<{ i
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">Edit Post</h1>
+      <h1 className="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">Edit Post</h1>
       <NewsForm action={updateNewsPostAction.bind(null, id)} defaultValues={post} />
     </div>
   );

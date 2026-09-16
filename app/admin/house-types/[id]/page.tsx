@@ -9,7 +9,7 @@ export default async function EditHouseTypePage({ params }: { params: Promise<{ 
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">Edit House Type</h1>
+      <h1 className="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">Edit House Type</h1>
       <HouseTypeForm action={updateHouseTypeAction.bind(null, id)} defaultValues={houseType} />
     </div>
   );

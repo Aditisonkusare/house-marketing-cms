@@ -6,7 +6,7 @@ export default async function NewCampaignPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">New Campaign</h1>
+      <h1 className="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">New Campaign</h1>
       <CampaignForm action={createCampaignAction} newsPosts={newsPosts} />
     </div>
   );

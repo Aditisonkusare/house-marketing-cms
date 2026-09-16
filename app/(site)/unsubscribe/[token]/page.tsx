@@ -25,16 +25,18 @@ export default async function UnsubscribePage({
     <div className="mx-auto max-w-md px-4 py-16 text-center sm:px-6">
       {data.unsubscribe ? (
         <>
-          <h1 className="text-2xl font-bold text-gray-900">You&rsquo;ve been unsubscribed</h1>
-          <p className="mt-3 text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            You&rsquo;ve been unsubscribed
+          </h1>
+          <p className="mt-3 text-gray-600 dark:text-gray-400">
             You won&rsquo;t receive any further email updates from Glenveagh Homes. If this was a
             mistake, you can register again at any time.
           </p>
         </>
       ) : (
         <>
-          <h1 className="text-2xl font-bold text-gray-900">Link no longer valid</h1>
-          <p className="mt-3 text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Link no longer valid</h1>
+          <p className="mt-3 text-gray-600 dark:text-gray-400">
             This unsubscribe link isn&rsquo;t recognized. If you&rsquo;re still receiving emails
             you&rsquo;d like to stop, please get in touch.
           </p>
