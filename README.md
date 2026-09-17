@@ -142,8 +142,11 @@ And the same email as delivered to a real inbox:
 
 - **Background campaign processing** with retries and delivery progress.
 - **Audience filters** so admins can review and refine campaign recipients before sending.
-- **Server-side validation and role-based admin permissions.**
-- **A media library** for uploading, previewing, and reusing images.
+- **Server-side validation and role-based admin permissions** — e.g. validating Page
+  Content and House Type fields (price, bedrooms, floor area, image URLs) on the
+  server, not just in the browser.
+- **A media library** for uploading, previewing, and reusing images, backed by object
+  storage (AWS S3 or Azure Blob Storage) instead of pasting external image URLs.
 - **Content previews, scheduled publishing, and revision history.**
 
 ## Data model
