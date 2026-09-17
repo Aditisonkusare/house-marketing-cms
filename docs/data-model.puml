@@ -1,0 +1,145 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+enum Status {
+  DRAFT
+  PUBLISHED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SENDING
+  SENT
+  FAILED
+}
+
+enum RecipientStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+entity VerificationToken {
+  identifier : String
+  --
+  token : String <<UQ>>
+  expires : DateTime
+}
+
+entity PageContent {
+  * id : String <<PK>>
+  --
+  slug : String <<UQ>>
+  title : String?
+  content : JSON
+  status : Status
+  publishedAt : DateTime?
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity HouseType {
+  * id : String <<PK>>
+  --
+  name : String
+  slug : String <<UQ>>
+  description : Text?
+  images : String[]
+  priceFrom : Decimal
+  bedrooms : Int
+  bathrooms : Int
+  floorAreaSqm : Decimal
+  status : Status
+  publishedAt : DateTime?
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity User {
+  * id : String <<PK>>
+  --
+  name : String?
+  email : String? <<UQ>>
+  passwordHash : String
+  role : String
+  emailVerified : DateTime?
+}
+
+entity Account {
+  * id : String <<PK>>
+  --
+  userId : String <<FK>>
+  provider : String
+  providerAccountId : String
+}
+
+entity Session {
+  * id : String <<PK>>
+  --
+  sessionToken : String <<UQ>>
+  userId : String <<FK>>
+  expires : DateTime
+}
+
+entity NewsPost {
+  * id : String <<PK>>
+  --
+  title : String
+  slug : String <<UQ>>
+  body : Text
+  excerpt : String?
+  status : Status
+  publishedAt : DateTime?
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity Campaign {
+  * id : String <<PK>>
+  --
+  subject : String
+  body : Text
+  newsPostId : String? <<FK>>
+  status : CampaignStatus
+  sentAt : DateTime?
+  recipientCount : Int
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity Subscriber {
+  * id : String <<PK>>
+  --
+  name : String
+  email : String <<UQ>>
+  consent : Boolean
+  unsubscribeToken : String <<UQ>>
+  subscribedAt : DateTime
+  unsubscribedAt : DateTime?
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+entity CampaignRecipient {
+  * id : String <<PK>>
+  --
+  campaignId : String <<FK>>
+  subscriberId : String <<FK>>
+  status : RecipientStatus
+  sentAt : DateTime?
+  error : String?
+  createdAt : DateTime
+}
+
+note bottom of CampaignRecipient
+  UNIQUE(campaignId, subscriberId)
+end note
+
+User ||--o{ Account
+User ||--o{ Session
+NewsPost |o..o{ Campaign : optionally linked
+Campaign ||--o{ CampaignRecipient
+Subscriber ||--o{ CampaignRecipient
+
+@enduml

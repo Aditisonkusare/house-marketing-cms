@@ -5,32 +5,90 @@ Glenveagh Properties coding challenge. Everything the public site shows — hous
 types, news posts, page content — is served from a self-built CMS via a GraphQL API,
 so editing content in the admin updates the live site with no code deploy.
 
-**Status:**
-- ✅ Part 1 — Public marketing site (homepage, house types, news, register form)
-- ✅ Part 2 — Custom CMS (admin login, CRUD, draft/published enforcement)
-- ✅ Part 3 — Email campaign tool (compose/preview/send, delivery log, unsubscribe)
-
 ## Tech stack
 
 - **Frontend/backend:** Next.js 16 (App Router) + React 19 — one app, server-rendered
 - **API:** GraphQL via Apollo Server, mounted at `/api/graphql`
 - **Database:** PostgreSQL + Prisma ORM
 - **Auth:** NextAuth (Credentials provider, one seeded admin user)
-- **Email:** Nodemailer over SMTP locally (Mailpit); Resend's HTTP API in production (`RESEND_API_KEY`) — outbound SMTP is unreliable from serverless platforms, so the same `sendMail()` call uses whichever is configured
+- **Email:** Nodemailer over SMTP (Mailpit locally; works against a real provider like Resend/Brevo by env config alone)
 - **Styling:** Tailwind CSS 4
 - **Local infrastructure:** Docker Compose (Postgres + Mailpit SMTP sandbox)
+
+## Key decisions and trade-offs
+
+- **Next.js + GraphQL:** one app and one deploy target for the public site, the admin,
+  and the API. GraphQL gives a single typed schema/endpoint shared by the admin's CRUD
+  screens and the public site's content queries, plus a free Apollo Sandbox for
+  exploring the API without extra tooling.
+- **PostgreSQL + Prisma:** the data is inherently relational (`Campaign` ↔
+  `Subscriber` ↔ `CampaignRecipient`, foreign keys, unique constraints like
+  `UNIQUE(campaignId, subscriberId)`), which Postgres enforces directly. Prisma gives
+  type-safe queries that match the rest of the TypeScript codebase and pairs cleanly
+  with Neon in production.
+- **Mailpit locally, Resend in production:** Mailpit needs zero configuration and lets
+  you inspect every sent email in a browser without a real provider or network access.
+  Production switches to Resend's HTTP API instead of raw SMTP because outbound SMTP
+  ports are commonly blocked or throttled on serverless platforms like Vercel — the
+  same `lib/mailer.ts` abstraction picks the transport automatically based on which
+  env vars are set.
+- **Image URLs instead of file uploads:** `HouseType.images` is a plain `String[]` of
+  URLs rather than an upload pipeline, avoiding the need for file/blob storage
+  infrastructure for this challenge's scope. A real media library (upload, preview,
+  reuse) is called out under "What I would do next" as the production follow-up.
+- **Synchronous campaign sending:** sending loops through recipients and writes the
+  per-recipient log in the same request/response cycle, so the admin gets an
+  immediate sent/failed report with no queue or worker infrastructure to run. This
+  trades off scalability for simplicity; background processing with retries (also
+  under "What I would do next") is the natural next step for larger recipient lists.
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) 20 or later
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for local Postgres + Mailpit), or your own Postgres instance
 
+## Hosted demo
+
+| | URL |
+|---|---|
+| Public marketing site | [house-marketing-cms.vercel.app](https://house-marketing-cms.vercel.app/) |
+| Admin login | [house-marketing-cms.vercel.app/admin/login](https://house-marketing-cms.vercel.app/admin/login) |
+| Source repository | [github.com/Aditisonkusare/house-marketing-cms](https://github.com/Aditisonkusare/house-marketing-cms) |
+
+The hosted admin uses the same application and login flow as the local setup.
+Credentials are intentionally not committed to this repository or hardcoded anywhere
+in the codebase — a test admin login for this submission is included directly in the
+submission email, so reviewing the hosted admin doesn't depend on separate LastPass
+access.
+
+### Production services
+
+| | Provider | Notes |
+|---|---|---|
+| Database | [Neon](https://neon.tech/) (serverless Postgres) | Free tier, no credit card required |
+| Email delivery | [Resend](https://resend.com/) | Free tier, no credit card required |
+| Hosting | [Vercel](https://vercel.com/) | Free (Hobby) tier, no credit card required |
+
+Production uses Neon's pooled connection string for `DATABASE_URL` at runtime, and
+Resend's HTTP API (via `RESEND_API_KEY`) instead of raw SMTP, since serverless
+platforms like Vercel commonly block or throttle outbound SMTP ports.
+
+## AI uses
+
+The Claude Code CLI was used during development to:
+
+- Plan the application structure and implementation approach in plan mode.
+- Consult and summarize relevant technical documentation when working with the project stack.
+- Support code development and deployment workflows, including implementation guidance, debugging, and release preparation.
+- Create mock seed data for the development database, including sample homes, news posts, and page content.
+- Draft and refine website copy for the public marketing pages and email content.
+
 ## Getting started
 
 **1. Clone the repo and install dependencies**
 
 ```bash
-git clone <this-repo-url>
+git clone https://github.com/Aditisonkusare/house-marketing-cms.git
 cd house-marketing-cms
 npm install
 ```
@@ -53,10 +111,6 @@ Then edit `.env`:
 ```bash
 docker compose up -d
 ```
-
-> Postgres is mapped to host port `5433` (not the default `5432`) to avoid clashing with
-> any other Postgres already running on your machine. If `5433` is also taken, change the
-> host port in `docker-compose.yml` and update `DATABASE_URL` in `.env` to match.
 
 **4. Set up the database**
 
@@ -82,71 +136,48 @@ npm run dev
 
 Log into the admin with the `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` you set in `.env`.
 
-## Deployment
-
-Deployed as a single app (public site + admin + GraphQL API all in one Next.js
-deployable — there's no separate frontend/backend split) on free tiers, no credit
-card required anywhere:
-
-- **Hosting:** [Vercel](https://vercel.com) — import the GitHub repo, framework
-  auto-detected, no custom build settings needed.
-- **Database:** [Neon](https://neon.tech) — serverless Postgres. Use the **pooled**
-  connection string as the runtime `DATABASE_URL` in Vercel; use the **direct**
-  (unpooled) string only for one-off local `prisma migrate deploy` / `prisma db seed`
-  runs against production (pgbouncer-style pooling can break the session locking
-  migrations need).
-- **Email:** [Resend](https://resend.com), via its **HTTP API** (not SMTP) — replaces
-  the local Mailpit sandbox in production. Free tier, sandbox sender
-  (`onboarding@resend.dev`), test campaigns only ever sent to the email address you
-  signed up with. Raw SMTP (nodemailer) works fine locally against Mailpit but is
-  unreliable from Vercel's serverless functions (outbound SMTP ports are often
-  blocked/filtered — connections fail with something like "Greeting never received"),
-  so `lib/mailer.ts` uses Resend's HTTP API automatically whenever `RESEND_API_KEY`
-  is set, falling back to SMTP only when it isn't (i.e. local dev).
-
-**One-time setup:**
-1. Create a Neon project, copy both its pooled and direct connection strings.
-2. Create a Resend account and an API key.
-3. Import this repo into Vercel and set the environment variables below (Production),
-   using the Neon **pooled** string for `DATABASE_URL`.
-4. Deploy once to learn your real `https://…vercel.app` URL, then set `NEXTAUTH_URL`
-   to that exact URL and redeploy.
-5. From your local machine, run the database setup once against Neon's **direct**
-   connection string:
-   ```bash
-   # in a shell with DATABASE_URL temporarily set to the Neon *direct* string
-   npx prisma migrate deploy
-   npx prisma db seed   # with real SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD set
-   ```
-
-| Variable | Production value |
-|---|---|
-| `DATABASE_URL` | Neon **pooled** connection string |
-| `NEXTAUTH_URL` | your real `https://...vercel.app` URL |
-| `NEXTAUTH_SECRET` | a fresh secret (`openssl rand -base64 32`) — don't reuse the local one |
-| `RESEND_API_KEY` | your Resend API key |
-| `SMTP_FROM` | `onboarding@resend.dev` |
-
-Do **not** set `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE`/`SMTP_USER`/`SMTP_PASS` in Vercel —
-those are only for local Mailpit. `RESEND_API_KEY` alone switches `lib/mailer.ts` to
-Resend's HTTP API.
-
-`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` are **not** set in Vercel — they're only
-needed transiently in your local shell for the one-time seed run above.
-
-Ongoing: pushes to `master` auto-deploy via Vercel's GitHub integration, independent
-of `.github/workflows/ci.yml` (which only runs lint/build/test, not deployment).
-
 ## Sending a campaign
 
 From the admin, register a few subscribers via the public `/register` form (your own
 test addresses are fine), then go to **Campaigns → New Campaign**, write a subject and
 body, optionally link a published news post, and save the draft. Open the campaign to
 preview exactly what will be sent, then hit **Send Campaign** — it emails every
-consented subscriber, and the same page then shows a per-recipient log
+consented subscriber via SMTP, and the same page then shows a per-recipient log
 (sent/failed). Every email includes an unsubscribe link; clicking it revokes consent so
 that subscriber is excluded from future sends. Check delivered emails at Mailpit
 (`http://localhost:8025`) locally, or your real provider's inbox in production.
+
+### Delivered campaign email
+
+![A delivered campaign email](docs/campaign-email-sent.png)
+
+## What I would do next
+
+- **Background campaign processing** with retries and delivery progress.
+- **Audience filters** so admins can review and refine campaign recipients before sending.
+- **Server-side validation and role-based admin permissions.**
+- **A media library** for uploading, previewing, and reusing images.
+- **Content previews, scheduled publishing, and revision history.**
+
+## Data model
+
+The application uses PostgreSQL with Prisma. CMS content is separated from email
+campaign data, while `CampaignRecipient` records the delivery status for each
+subscriber. Public GraphQL queries only return content whose `status` is
+`PUBLISHED`; drafts remain available to authenticated CMS users.
+
+The full PlantUML source is available in [docs/data-model.puml](docs/data-model.puml).
+
+![Glenveagh Homes data model](docs/data-model.jpg)
+
+To re-render the diagram from the PlantUML source:
+
+```bash
+plantuml docs/data-model.puml
+```
+
+This produces `docs/data-model.png` or `docs/data-model.svg`, depending on the
+PlantUML output options used.
 
 ## Project structure
 
@@ -157,7 +188,9 @@ app/api/graphql/      Apollo Server GraphQL API
 lib/graphql/          GraphQL schema and resolvers
 lib/validation/        Shared validation schemas
 lib/campaigns/         Email template and campaign-send logic
-lib/mailer.ts          Email sender — Resend API in production, SMTP (Mailpit) locally
+lib/mailer.ts          Nodemailer/SMTP wrapper
+docs/data-model.puml   PlantUML database model diagram (source)
+docs/data-model.jpg    Rendered data model diagram (embedded in README)
 prisma/schema.prisma   Database schema
 docker-compose.yml     Local Postgres + Mailpit
 ```
@@ -168,6 +201,7 @@ docker-compose.yml     Local Postgres + Mailpit
 |---|---|
 | `npm run dev` | Start the dev server |
 | `npm run build` | Production build |
+| `npm run start` | Start the production server after building |
 | `npm run lint` | Run ESLint |
 | `npx prisma studio` | Browse the database in a GUI |
 | `npx prisma migrate dev` | Create a new migration while developing |
