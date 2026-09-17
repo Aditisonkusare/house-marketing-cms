@@ -17,30 +17,11 @@ so editing content in the admin updates the live site with no code deploy.
 
 ## Key decisions and trade-offs
 
-- **Next.js + GraphQL:** one app and one deploy target for the public site, the admin,
-  and the API. GraphQL gives a single typed schema/endpoint shared by the admin's CRUD
-  screens and the public site's content queries, plus a free Apollo Sandbox for
-  exploring the API without extra tooling.
-- **PostgreSQL + Prisma:** the data is inherently relational (`Campaign` ↔
-  `Subscriber` ↔ `CampaignRecipient`, foreign keys, unique constraints like
-  `UNIQUE(campaignId, subscriberId)`), which Postgres enforces directly. Prisma gives
-  type-safe queries that match the rest of the TypeScript codebase and pairs cleanly
-  with Neon in production.
-- **Mailpit locally, Resend in production:** Mailpit needs zero configuration and lets
-  you inspect every sent email in a browser without a real provider or network access.
-  Production switches to Resend's HTTP API instead of raw SMTP because outbound SMTP
-  ports are commonly blocked or throttled on serverless platforms like Vercel — the
-  same `lib/mailer.ts` abstraction picks the transport automatically based on which
-  env vars are set.
-- **Image URLs instead of file uploads:** `HouseType.images` is a plain `String[]` of
-  URLs rather than an upload pipeline, avoiding the need for file/blob storage
-  infrastructure for this challenge's scope. A real media library (upload, preview,
-  reuse) is called out under "What I would do next" as the production follow-up.
-- **Synchronous campaign sending:** sending loops through recipients and writes the
-  per-recipient log in the same request/response cycle, so the admin gets an
-  immediate sent/failed report with no queue or worker infrastructure to run. This
-  trades off scalability for simplicity; background processing with retries (also
-  under "What I would do next") is the natural next step for larger recipient lists.
+- **Next.js + GraphQL:** Unified single-deploy architecture powering the public site, admin dashboard, and API. GraphQL provides a shared, type-safe schema across all routes and includes Apollo Sandbox for easy API testing.
+- **PostgreSQL + Prisma:** Enforces relational integrity directly in Postgres using constraints like UNIQUE(campaignId, subscriberId). Prisma delivers end-to-end TypeScript safety and integrates seamlessly with serverless Neon in production.
+- **Mailpit locally, Resend in production:** Uses Mailpit for zero-config local email testing and Resend’s HTTP API in production to bypass serverless SMTP restrictions. A single mailer abstraction automatically selects the right transport based on environment variables.
+- **Image URLs instead of file uploads:** Image URLs over File Uploads Stores image references as a simple URL array (HouseType.images) to avoid extra cloud storage overhead for the initial POC. Direct file uploads and media management can easily be added as the platform matures.
+- **Synchronous campaign sending:** Processes campaign emails synchronously to provide instant status feedback in the admin UI without complex queue infrastructure. As recipient lists scale, this can transition to asynchronous background processing with retries.
 
 ## Prerequisites
 

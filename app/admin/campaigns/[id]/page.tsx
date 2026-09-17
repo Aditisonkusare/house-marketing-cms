@@ -6,6 +6,7 @@ import {
 } from "@/app/admin/campaigns/actions";
 import { renderCampaignEmailHtml } from "@/lib/campaigns/email-template";
 import { formatDate } from "@/lib/format";
+import { SendCampaignButton } from "@/app/admin/campaigns/send-campaign-button";
 
 const RECIPIENT_STATUS_STYLES: Record<string, string> = {
   PENDING: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
@@ -50,13 +51,7 @@ export default async function CampaignDetailPage({
             {consentedCount === 1 ? "" : "s"}.
           </p>
           <form action={sendCampaignAction.bind(null, campaign.id)} className="mt-3">
-            <button
-              type="submit"
-              disabled={consentedCount === 0}
-              className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900"
-            >
-              Send Campaign
-            </button>
+            <SendCampaignButton disabled={consentedCount === 0} />
           </form>
         </div>
       ) : (
