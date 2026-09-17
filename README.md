@@ -130,7 +130,13 @@ that subscriber is excluded from future sends. Check delivered emails at Mailpit
 
 ### Delivered campaign email
 
-![A delivered campaign email](docs/campaign-email-sent.png)
+Sent from the hosted admin (Vercel + Resend), showing the campaign marked `SENT`:
+
+![Campaign marked as sent in the admin](docs/campaign-admin-sent.jpg)
+
+And the same email as delivered to a real inbox:
+
+![A delivered campaign email](docs/campaign-email-sent.jpg)
 
 ## What I would do next
 
